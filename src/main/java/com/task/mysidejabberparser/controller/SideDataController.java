@@ -50,12 +50,15 @@ public class SideDataController {
                 }
             });
         }
-        return Mono.just(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+        return SideModelUtil.toModel(repository.save(data)).map(ResponseEntity::ok);
     }
 
-    @PutMapping("{domain}")
-    public Mono<ResponseEntity<SideModel>> updateProduct(@PathVariable String domain, @RequestBody SideData data) {
-        return repository.findById(domain)
+    @PutMapping("{name}")
+    public Mono<ResponseEntity<SideModel>> updateProduct(@PathVariable String name, @RequestBody SideData data) {
+        if(repository.findSideDataByName(name).equals(Mono.just(data))) {
+            return Mono.just(new ResponseEntity<>(SideModelUtil.toModel(data), HttpStatus.ALREADY_REPORTED));
+        }
+        return repository.findSideDataByName(name)
                 .flatMap(existingData -> {
                     existingData.setName(data.getName());
                     existingData.setUrl(data.getUrl());
@@ -67,9 +70,9 @@ public class SideDataController {
                 .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
-    @DeleteMapping("{domain}")
-    public Mono<ResponseEntity<Void>> deleteSideDataByDomain(@PathVariable String domain) {
-        return repository.findById(domain)
+    @DeleteMapping("{name}")
+    public Mono<ResponseEntity<Void>> deleteSideDataByDomain(@PathVariable String name) {
+        return repository.findSideDataByName(name)
                 .flatMap(existingData -> repository.delete(existingData)
                         .then(Mono.just(ResponseEntity.ok().<Void>build()))
                 )
