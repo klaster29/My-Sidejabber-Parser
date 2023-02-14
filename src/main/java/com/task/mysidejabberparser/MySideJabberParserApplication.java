@@ -4,10 +4,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class MySidejabberParserApplication {
+public class MySideJabberParserApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(MySidejabberParserApplication.class, args);
+		SpringApplication.run(MySideJabberParserApplication.class, args);
 	}
 
 }
