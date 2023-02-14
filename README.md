@@ -1,4 +1,4 @@
-# Hello! It's my test Restful API for employer  
+# Hello! It's my test-task Restful API for employer  
 Endpoints:  
 1)http://localhost:8080/reviews/    -GET(all),POST(body),DELETE(all)  
 Example for POST:{
