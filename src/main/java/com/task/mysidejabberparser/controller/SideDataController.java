@@ -4,6 +4,7 @@ import com.task.mysidejabberparser.Ultils.SideModelUtil;
 import com.task.mysidejabberparser.entity.SideData;
 import com.task.mysidejabberparser.model.SideModel;
 import com.task.mysidejabberparser.repository.SideDataRepository;
+import com.task.mysidejabberparser.service.SideDataService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,12 +12,15 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.Objects;
+
 @RestController
 @RequestMapping("/reviews")
 @AllArgsConstructor
 public class SideDataController {
 
     private final SideDataRepository repository;
+    private final SideDataService service;
 
     @GetMapping
     Flux<SideModel> getAllSideModels() {
@@ -24,14 +28,29 @@ public class SideDataController {
     }
 
     @GetMapping("{domain}")
-    public Mono<SideModel> getSideModelByDomain(@PathVariable String domain) {
-        return SideModelUtil.toModel(repository.findById(domain));
+    public Mono<ResponseEntity<SideModel>> getSideModelByDomain(@PathVariable String domain) {
+        if (!domain.isBlank()) {
+            return repository.findById(domain)
+                    .defaultIfEmpty(service.getSideData(domain))
+                    .map(SideModelUtil::toModel)
+                    .map(ResponseEntity::ok);
+        }
+        return Mono.just(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<SideModel> saveProduct(@RequestBody SideData data) {
-        return SideModelUtil.toModel(repository.save(data));
+    public Mono<ResponseEntity<SideModel>> saveProduct(@RequestBody SideData data) {
+        if(!Objects.isNull(data)) {
+            repository.findSideDataByName(data.getName()).map(sideData -> {
+                if (sideData.equals(data)) {
+                    return new ResponseEntity<>(data, HttpStatus.ALREADY_REPORTED);
+                } else {
+                    return repository.save(data).map(ResponseEntity::ok);
+                }
+            });
+        }
+        return Mono.just(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
     }
 
     @PutMapping("{domain}")
@@ -58,7 +77,7 @@ public class SideDataController {
     }
 
     @DeleteMapping
-    public Mono<Void> deleteAllSideData() {
-        return repository.deleteAll();
+    public Mono<ResponseEntity<Void>> deleteAllSideData() {
+        return repository.deleteAll().map(ResponseEntity::ok);
     }
 }

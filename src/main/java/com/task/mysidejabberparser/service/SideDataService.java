@@ -1,47 +1,49 @@
 package com.task.mysidejabberparser.service;
 
 import com.google.gson.Gson;
-import com.task.mysidejabberparser.model.SideModel;
+import com.task.mysidejabberparser.entity.SideData;
 import com.task.mysidejabberparser.model.TempDataModel;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.Objects;
 
+@Service
 public class SideDataService {
 
     public static final String CLASS_NAME_FOR_RATING_AND_REVIEWS_COUNT = "liftigniter-metadata";
     public static final String CLASS_NAME_FOR_NAME = "dialog__title";
     public static final String CLASS_NAME_FOR_URL = "url-header__external-link";
     public static final String KEY_TO_GET_ATTRIBUTES_TO_TEMP_MODEL = "#data";
+    public static final String FIRST_PART_OF_PATH = "https://www.sitejabber.com/reviews/";
 
-    public SideModel getSideModel(String path) {
-        SideModel resultModel;
+    public SideData getSideData(String domain) {
+        SideData resultData;
         try {
-            Document document = Jsoup.connect(path).get();
+            Document document = Jsoup.connect(FIRST_PART_OF_PATH + domain).get();
             String url = getUrl(document);
             String name = getName(document);
-            String ratingAndReviews = getRatingAndReviewsCount(document);
             Gson gson = new Gson();
-            resultModel = parseAndGetModel(url, name, ratingAndReviews, gson);
+            TempDataModel ratingAndReviews = getRatingAndReviewsCount(document, gson);
+            resultData = parseAndGetSideData(domain, url, name, ratingAndReviews);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return resultModel;
+        return resultData;
     }
 
-    private SideModel parseAndGetModel(String url, String name, String ratingAndReviews, Gson gson) {
-        TempDataModel tempDataModel = gson.fromJson(ratingAndReviews, TempDataModel.class);
-        return new SideModel(name, tempDataModel.getRating(), url, tempDataModel.getReviewsCount());
+    private SideData parseAndGetSideData(String path, String url, String name, TempDataModel ratingAndReviews) {
+        return new SideData(path, name, ratingAndReviews.getRating(), url, ratingAndReviews.getReviewCount());
 
     }
 
-    private String getRatingAndReviewsCount(Document document) {
-        return Objects.requireNonNull(document.getElementById(CLASS_NAME_FOR_RATING_AND_REVIEWS_COUNT))
+    private TempDataModel getRatingAndReviewsCount(Document document, Gson gson) throws IOException {
+        return gson.fromJson(Objects.requireNonNull(document.getElementById(CLASS_NAME_FOR_RATING_AND_REVIEWS_COUNT))
                 .childNode(0)
                 .attributes()
-                .get(KEY_TO_GET_ATTRIBUTES_TO_TEMP_MODEL);
+                .get(KEY_TO_GET_ATTRIBUTES_TO_TEMP_MODEL), TempDataModel.class);
     }
 
     private String getUrl(Document document) {
@@ -51,6 +53,4 @@ public class SideDataService {
     private String getName(Document document) {
         return document.getElementsByClass(CLASS_NAME_FOR_NAME).text();
     }
-
-
 }

@@ -1,5 +1,6 @@
 package com.task.mysidejabberparser.model;
 
+import com.task.mysidejabberparser.entity.SideData;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,7 +19,12 @@ public class SideModel {
         this.reviewsCount = Integer.valueOf(reviewsCount);
     }
 
-    public SideModel() {
+    public SideModel() {}
 
+    public SideModel(SideData currentData) {
+        name = currentData.getName();
+        rating = Double.valueOf(currentData.getRating());
+        url = "https://" + currentData.getUrl();
+        reviewsCount = Integer.valueOf(currentData.getReviewsCount());
     }
 }
