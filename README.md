@@ -1,4 +1,4 @@
-# Hello! It's my test-task Restful API for employer  
+# Hello! It's my test-task Restful API
 Endpoints:  
 1)http://localhost:8080/reviews/    -GET(all),POST(body),DELETE(all)  
 Example for POST:{
@@ -18,4 +18,3 @@ Example for PUT {
 	"url": "https://www.kehffff.com",
 	"reviewsCount": 70001
 }  
-##It was interesting task and hard sometimes. Open to critic. Have a good day
